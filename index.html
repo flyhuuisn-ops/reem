@@ -2,262 +2,296 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>أدخل تاريخ المرور للدخول</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>أدخل تاريخ المرور المرور</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#f6f8fb;
       --card:#ffffff;
-      --accent:#1a73e8;
+      --accent:#0b69ff;
+      --accent-600:#0556d6;
       --muted:#6b7280;
-      --danger:#f87171;
+      --danger:#ef4444;
+      --glass: rgba(255,255,255,0.8);
+      --topbar-h:72px;
     }
-    html,body{height:100%;margin:0;font-family:'Tajawal',system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;}
-    body{background:linear-gradient(180deg,#f8fbff 0%, #f0f4ff 100%);color:#111;display:flex;align-items:center;justify-content:center;padding:24px;}
-    .app{width:100%;max-width:540px}
-
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Tajawal',system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:#0f172a}
+    a{color:inherit}
+    /* Layout container */
+    .container{max-width:980px;margin:20px auto;padding:16px;display:flex;gap:18px;align-items:flex-start}
+    /* Left column: main secure/card */
+    .main{flex:1;min-width:0}
     .card{
-      background:var(--card);border-radius:14px;padding:20px;box-shadow:0 10px 25px rgba(2,6,23,0.06);margin:8px auto;
+      background:var(--card);
+      border-radius:14px;
+      padding:20px;
+      box-shadow:0 8px 28px rgba(15,23,42,0.06);
+      overflow:hidden;
     }
-    .center{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+    .center{display:flex;flex-direction:column;gap:12px}
     .title{font-size:20px;font-weight:700}
     .subtitle{color:var(--muted);font-size:14px}
 
-    /* date inputs */
-    .date-row{display:flex;gap:8px;align-items:center;font-size:18px}
-    .date-row input{
-      width:100%;min-width:0;padding:12px 14px;font-size:18px;border-radius:10px;border:1px solid #e8eef9;text-align:center;direction:ltr;
-      font-family:inherit;
+    /* Topbar (fixed when in secure area) */
+    .topbar{
+      position:fixed;left:0;right:0;top:0;height:var(--topbar-h);
+      background:linear-gradient(90deg,#0f172a,#0b1220);
+      color:#fff;display:flex;align-items:center;gap:14px;padding:0 18px;z-index:120;
+      box-shadow:0 6px 18px rgba(2,6,23,0.18);
+    }
+    .topbar .brand{font-weight:700;font-size:16px}
+    .topbar .actions{margin-inline-start:auto;display:flex;gap:10px;align-items:center}
+    .btn{
+      background:var(--accent);color:#fff;padding:8px 12px;border-radius:10px;border:none;font-weight:600;cursor:pointer;
+      box-shadow: 0 6px 18px rgba(11,105,255,0.14);
+    }
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.08);color:#fff;box-shadow:none}
+    .panic-btn{
+      display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:#ff7043;color:#fff;border:none;
+      font-weight:700;cursor:pointer;border:2px solid rgba(0,0,0,0.04);
+    }
+    .panic-btn small{opacity:.95;font-size:13px}
+
+    /* Login card */
+    .login-card{max-width:520px;margin:32px auto}
+    .inputs{display:flex;gap:10px;align-items:center;justify-content:center}
+    .inputs input{
+      width:100%;min-width:0;padding:12px 14px;border-radius:10px;border:1px solid #e6eef7;font-size:18px;text-align:center;
+      background:linear-gradient(180deg,#fff,#fbfdff);
     }
     .slash{color:var(--muted);font-weight:700;margin:0 6px}
-    .foot{margin-top:8px;font-size:14px;color:var(--muted)}
+
+    .controls{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
     .linkish{background:none;border:none;color:var(--accent);cursor:pointer;font-weight:700;padding:6px;border-radius:8px}
-    .alert{background:#fff4f4;border:1px solid #ffdede;color:#7b1d1d;padding:8px 12px;border-radius:10px;display:inline-block;margin-top:10px}
 
-    /* recovery */
-    .qa{display:flex;flex-direction:column;gap:10px;text-align:right}
-    .qa input{padding:10px;border-radius:8px;border:1px solid #e6eef7}
+    /* Wrong alert - hidden by default */
+    .alert-inline{display:none;padding:10px 12px;border-radius:10px;background:#fff4f4;border:1px solid #ffdede;color:var(--danger);margin-top:12px}
 
-    /* secure area */
-    .topbar{position:fixed;left:0;right:0;top:0;height:60px;background:linear-gradient(90deg,#0f172a,#0b1220);color:#fff;display:flex;align-items:center;gap:12px;padding:0 16px;z-index:60}
-    .topbar .name{font-weight:700}
-    .topbar .action{margin-left:auto;display:flex;gap:8px;align-items:center}
-    .panic{opacity:0.03;cursor:pointer;border-radius:6px;padding:6px}
-    .message-area{margin-top:86px;padding:20px;max-width:880px;line-height:1.8;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:12px;border:1px solid #eef6ff;box-shadow:0 8px 20px rgba(2,6,23,0.04)}
-    .message-area p{white-space:pre-wrap;font-size:16px}
-    .chat-panel{display:none;margin-top:12px;border-radius:12px;border:1px solid #e6eef7;padding:12px;background:#fff}
-    .chat-header{display:flex;align-items:center;gap:8px;padding:6px;border-bottom:1px solid #f1f5f9}
-    .chat-body{max-height:320px;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
-    .bubble{max-width:76%;padding:10px;border-radius:12px;background:#f1f5f9;color:#111}
-    .bubble.me{background:var(--accent);color:#fff;align-self:flex-start}
-    .chat-input{display:flex;gap:8px;margin-top:8px}
-    .chat-input input{flex:1;padding:10px;border-radius:10px;border:1px solid #e6eef7}
+    /* Secure message area */
+    .message-area{margin-top:12px;padding:18px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid #eef6ff;line-height:1.8}
+    .message-area p{white-space:pre-wrap;margin:0;font-size:16px}
 
-    .security-banner{background:#fff7e6;border:1px solid #f3d99b;padding:10px;border-radius:8px;color:#8a5a00;margin-bottom:10px}
-
-    /* Panic English overlay (disguise) */
-    .english-overlay{
-      position:fixed;inset:0;background:linear-gradient(180deg,#fff 0%,#f5f8ff 100%);display:flex;align-items:center;justify-content:center;z-index:120;padding:24px;visibility:hidden;opacity:0;transition:opacity .18s,visibility .18s;
+    /* Chat panel - fixed and independent */
+    .chat-panel{
+      width:360px;max-width:40%;
+      position:sticky;top:calc(var(--topbar-h) + 18px);
+      align-self:flex-start;
     }
-    .english-card{width:100%;max-width:900px;background:var(--card);border-radius:12px;padding:28px;box-shadow:0 10px 30px rgba(15,23,42,0.08);text-align:left}
-    .english-card h1{margin:0;font-size:28px;color:#0f172a}
-    .english-desc{color:var(--muted);margin-top:8px}
-
-    .visible{visibility:visible;opacity:1}
-
-    .eye{cursor:pointer;padding:6px;border-radius:8px;background:#f3f6ff;border:1px solid #e6eef7}
-    .hidden{display:none}
-    @media (max-width:600px){
-      .message-area{padding:14px}
-      .topbar{padding:0 8px}
+    .chat-inner{height:520px;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;box-shadow:0 8px 28px rgba(2,6,23,0.06)}
+    .chat-header{
+      display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#0b1220,#0f172a);color:#fff;
+      justify-content:space-between;
     }
+    .chat-title{font-weight:700}
+    .chat-actions{display:flex;gap:8px;align-items:center}
+    .search-box{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.06);padding:6px;border-radius:10px}
+    .search-box input{background:transparent;border:0;color:#fff;outline:none;padding:6px;font-size:14px;width:140px}
+    .chat-body{flex:1;overflow:auto;padding:12px;background:linear-gradient(180deg,#f7f9ff,#ffffff);display:flex;flex-direction:column;gap:10px}
+    .chat-footer{display:flex;gap:10px;padding:12px;border-top:1px solid #eef4ff;background:#fff;align-items:center}
+    .chat-footer input{flex:1;padding:12px;border-radius:10px;border:1px solid #e6eef7;font-size:15px}
+    .bubble{max-width:78%;padding:10px 12px;border-radius:14px;line-height:1.4;word-break:break-word}
+    .bubble.recv{background:#f1f5f9;color:#0f172a;align-self:flex-end;border-bottom-right-radius:4px}
+    .bubble.sent{background:var(--accent);color:#fff;align-self:flex-start;border-bottom-left-radius:4px}
+    .meta{font-size:12px;color:var(--muted);margin-top:6px}
+
+    /* Panic overlay (disguise) */
+    .panic-overlay{position:fixed;inset:0;background:linear-gradient(180deg,#fff 0%,#f3f6ff 100%);display:flex;align-items:center;justify-content:center;z-index:220;padding:24px;visibility:hidden;opacity:0;transition:opacity .12s,visibility .12s}
+    .panic-overlay.visible{visibility:visible;opacity:1}
+    .panic-card{max-width:920px;width:100%;background:var(--card);border-radius:12px;padding:26px;box-shadow:0 10px 30px rgba(15,23,42,0.08)}
+
+    /* Responsive behavior */
+    @media (max-width:1000px){
+      .container{padding:12px}
+      .chat-panel{position:fixed;right:12px;bottom:12px;width:340px;max-width:92%;height:auto;z-index:200}
+      .chat-inner{height:460px}
+    }
+    @media (max-width:700px){
+      .container{flex-direction:column;padding:12px}
+      .chat-panel{position:fixed;left:0;right:0;bottom:0;width:100%;max-width:100%;height:60vh;border-radius:12px;padding:8px}
+      .chat-inner{height:100%;border-radius:12px}
+      .main{padding-bottom:12px}
+    }
+    /* small helpers */
+    .muted{color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
-  <div class="app" id="app">
-    <!-- Screen: password date entry (shown immediately on page load) -->
-    <div class="card center" id="loginScreen">
-      <div class="title">أدخل تاريخ المرور للدخول</div>
-      <div class="subtitle">أدخل التاريخ بالصيغة YYYY / MM / DD</div>
+  <!-- Topbar (hidden initially; shown when in secure area) -->
+  <div id="topbar" class="topbar" style="display:none">
+    <div class="brand">جوجو</div>
+    <div class="actions">
+      <button id="panicTop" class="panic-btn" aria-label="زر الطوارئ">🔒 <small>طوارئ</small></button>
+      <button id="openChatBtn" class="btn ghost" aria-label="فتح المحادثة">مراسلة</button>
+    </div>
+  </div>
 
-      <div style="width:100%;max-width:320px;margin-top:12px">
-        <div class="date-row" id="dateRow">
-          <input id="year" inputmode="numeric" maxlength="4" placeholder="YYYY" aria-label="سنة" />
-          <div class="slash">/</div>
-          <input id="month" inputmode="numeric" maxlength="2" placeholder="MM" aria-label="شهر" />
-          <div class="slash">/</div>
-          <input id="day" inputmode="numeric" maxlength="2" placeholder="DD" aria-label="يوم" />
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="eye" id="toggleMask" title="إظهار/إخفاء">👁️</button>
-            <div style="font-size:13px;color:var(--muted)">سيتم إخفاء الأرقام بعد ثانية</div>
+  <main class="container" id="mainContainer">
+    <section class="main">
+      <div class="card login-card" id="loginCard">
+        <div class="center">
+          <div class="title">أدخل تاريخ المرور للدخول</div>
+          <!-- inputs -->
+          <div class="inputs" style="margin-top:12px;">
+            <input id="year" inputmode="numeric" maxlength="4" placeholder="YYYY" aria-label="سنة" />
+            <div class="slash">/</div>
+            <input id="month" inputmode="numeric" maxlength="2" placeholder="MM" aria-label="شهر" />
+            <div class="slash">/</div>
+            <input id="day" inputmode="numeric" maxlength="2" placeholder="DD" aria-label="يوم" />
           </div>
-          <button class="linkish" id="forgotBtn">نسيت كلمة المرور</button>
-        </div>
-        <div id="wrongAlert" class="hidden" style="display:inline-block;margin-top:10px">
-          <div class="alert">عذراً، الإجابة خاطئة</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Screen: recovery -->
-    <div class="card center hidden" id="recoveryScreen">
-      <div class="title">التحقق من الهوية</div>
-      <div class="subtitle">الإجابة عن سؤال واحد تكفي</div>
-      <div class="qa" style="width:100%;max-width:320px;margin-top:12px">
-        <label>إيميلي الخاص بي</label>
-        <input id="rec1" placeholder="الإيميل أو اسم المستخدم" />
-        <label>ما اللقب الذي امتازتُ به</label>
-        <input id="rec2" placeholder="اللقب" />
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-          <button class="muted-btn" id="backToLogin">رجوع</button>
-          <button class="btn" id="recSubmit">تحقق</button>
-        </div>
-        <div id="recMsg" class="hidden" style="margin-top:8px;color:var(--danger)"></div>
-      </div>
-    </div>
+          <div class="controls" style="margin-top:10px;">
+            <div></div>
+            <button id="forgotBtn" class="linkish">نسيت كلمة المرور</button>
+          </div>
 
-    <!-- Screen: secure area -->
-    <div class="card hidden" id="secureScreen" style="padding-top:12px">
-      <div class="topbar" id="topbar" style="display:none">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="font-weight:700">جوجو</div>
-        </div>
-        <div class="action">
-          <button class="btn" id="openChat">مراسلة</button>
-          <!-- Panic lock inside topbar (low opacity) -->
-          <div id="panic" class="panic" title="زر الطوارئ — إخفاء المحتوى">🔒</div>
+          <div id="wrongAlert" class="alert-inline" role="status" aria-live="polite">عذراً، الإجابة خاطئة</div>
         </div>
       </div>
 
-      <div id="secureContent" style="margin-top:68px">
+      <!-- recovery card -->
+      <div class="card" id="recoveryCard" style="display:none;margin-top:18px">
+        <div class="title">التحقق من الهوية</div>
+        <div style="margin-top:8px" class="muted">الإجابة عن سؤال واحد تكفي</div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+          <input id="rec1" placeholder="الإيميل أو اسم المستخدم" />
+          <input id="rec2" placeholder="اللقب" />
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button id="backToLogin" class="btn ghost">رجوع</button>
+            <button id="recSubmit" class="btn">تحقق</button>
+          </div>
+          <div id="recMsg" class="muted" style="display:none;color:var(--danger)"></div>
+        </div>
+      </div>
+
+      <!-- secure area -->
+      <div class="card" id="secureCard" style="display:none;margin-top:18px;padding-top:16px">
         <div class="message-area" id="specialMessage">
           <p>
 ريام، إذا رأيت هذه الرسالة، فقد حدث ما أريده، أتمنى أن تكوني بخير وصحَّة وسلامة وعافية، رحتِ وعفتيني بدون وداع خاصة بعد ما گلتِ كنت بالمستشفى، ريام هواي خفت عليجكلماتي ما تكفي هنا حتى أوصف الي صار وياي بغيابج وشكد مشتاقلج وأصلا صار تراكمات لأن اكثر من فترة أنقطع التواصل بيناتنا، ريوم مشتاقلج هواي هواي وأكثر من كل شيء، أحبج ريام أحبج ريوش، ريوم راح اختصر علمودج حتى ما تتأخرين بالقراءة وأنتِ فاتحة هذا الموقع، ريام سويت هذه الصفحة حتى أعرف أنك موجودة وبخير وگاعد تتابعين حسابي التيك توك باعي بلحظة دخولج للصفحة الخاصة (بعد إدخال كلمة المرور) حيوصل ألي إشعار أنك دخلتِ ووقت دخولك ووقت خروجك من الصفحة الخاصة (أقصد بالخاصة لأن فتحت لك بعد كلمة المرور)، باعي الشريط الي فوق تقدرين تضغطين عليه وتراسليني وتطمئنيني عليج ريومة آني أگدر أسوي موقع مراسلة أكثر أمان يعني أحتاج أعلمج شلون تفتحين المحادثة بي لأن راح اخلي المحادثة ما تفتح الا بحركات سرية والموقع يكون عادي مثلا تعلّم لغة إنجليزية حتى إذا أحد أقترب بحركة خروج وحدة تفتح صفحة تعلَّم إنجليزية المهم هسه إذا تقدرين راسليني وطمنيني عليج حتى لو تكتبين الرسالة بغير مكان (بأي تطبيق) بعدين تنسخيها وتدخلين للمحادثة من الشريط الي فوق وتلصقيها إذا كان عندك كلام هواي وما تقدرين تفتحين المحادثة لفترة طويلة. المهم ريومة أحبج، أنتظر منج تدخلين للصفحة الخاصة حتى أعرف أنك بخير وبعدين حنتظر منج تراسليني، للعلم ريومة الرسائل تروح وتحذف من عندج إذا تطلعين من الموقع تمام لا تخافين.. آخر شيء أريد أضحك ما أريد النص يكون كئيب وضحكتي أريد تفرحج وتضحكج 😁😂❤
           </p>
         </div>
+      </div>
+    </section>
 
-        <!-- Chat panel -->
-        <div class="chat-panel" id="chatPanel" aria-hidden="true">
-          <div class="chat-header">
-            <div style="display:flex;gap:8px;align-items:center">
-              <button id="searchBtn" class="eye">🔍</button>
-              <div style="font-weight:700">محادثة مع ريام</div>
-            </div>
-            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-              <div id="securityBannerPlace"></div>
-              <!-- Panic lock inside chat header (low opacity) -->
-              <div id="chatPanic" class="panic" title="زر الطوارئ — إخفاء المحادثة">🔒</div>
+    <!-- Chat panel -->
+    <aside class="chat-panel" id="chatPanel" style="display:none">
+      <div class="chat-inner card" style="padding:0">
+        <div class="chat-header">
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="width:40px;height:40px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;color:#0b69ff;font-weight:800">ر</div>
+            <div>
+              <div class="chat-title">محادثة مع ريام</div>
+              <div class="muted" style="font-size:12px">المحادثة خاصة وتُحذف عند الخروج</div>
             </div>
           </div>
 
-          <div id="securityBanner" class="security-banner hidden">تنبيه للأمان: الرسائل لا تصلكِ كإشعارات خارج الصفحة. بمجرد قراءتكِ للرسائل والخروج من الصفحة، ستُحذف تلقائيًا من جهتكِ ولن تتمكني من رؤيتها مرة أخرى.</div>
+          <div class="chat-actions">
+            <div class="search-box" id="searchBox" style="display:none">
+              <input id="searchInput" placeholder="ابحث بالرسائل..." />
+              <button id="clearSearch" class="btn ghost" style="padding:6px 8px">إلغاء</button>
+            </div>
 
-          <div class="chat-body" id="chatBody" role="log" aria-live="polite"></div>
-
-          <div class="chat-input">
-            <input id="chatInput" placeholder="اكتب رسالتك هنا..." />
-            <button class="btn" id="sendBtn">إرسال</button>
+            <button id="searchToggle" class="btn ghost" title="بحث">🔍</button>
+            <button id="panicChat" class="panic-btn" title="زر الطوارئ">🔒</button>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Panic (English disguise) overlay — shown only when panic activated -->
-  <div class="english-overlay" id="englishOverlay" aria-hidden="true">
-    <div class="english-card" role="document">
-      <h1>English Daily Quiz</h1>
-      <div class="english-desc">Practice a quick vocabulary quiz every day. New word sets daily — improve your English step by step.</div>
-      <div style="margin-top:20px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
-        <button class="muted-btn" id="closePanic">عودة</button>
+        <div class="chat-body" id="chatBody" aria-live="polite" role="log"></div>
+
+        <div class="chat-footer">
+          <input id="chatInput" placeholder="اكتب رسالتك..." />
+          <button id="sendBtn" class="btn">إرسال</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Panic overlay -->
+  <div id="panicOverlay" class="panic-overlay" aria-hidden="true">
+    <div class="panic-card">
+      <h2 style="margin:0 0 8px 0">English Daily Quiz</h2>
+      <p style="color:var(--muted);margin:0 0 14px 0;">Practice a quick vocabulary quiz every day. New word sets daily — improve your English step by step.</p>
+      <div style="display:flex;justify-content:flex-end">
+        <button id="closePanic" class="btn">عودة للصفحة الخاصة</button>
       </div>
     </div>
   </div>
 
 <script>
+/* Clean, self-contained client JS */
 (function(){
   // Elements
-  const loginScreen = document.getElementById('loginScreen');
-  const recoveryScreen = document.getElementById('recoveryScreen');
-  const secureScreen = document.getElementById('secureScreen');
   const yearEl = document.getElementById('year');
   const monthEl = document.getElementById('month');
   const dayEl = document.getElementById('day');
-  const toggleMaskBtn = document.getElementById('toggleMask');
   const forgotBtn = document.getElementById('forgotBtn');
   const wrongAlert = document.getElementById('wrongAlert');
+  const recoveryCard = document.getElementById('recoveryCard');
+  const loginCard = document.getElementById('loginCard');
   const rec1 = document.getElementById('rec1');
   const rec2 = document.getElementById('rec2');
   const recSubmit = document.getElementById('recSubmit');
   const backToLogin = document.getElementById('backToLogin');
+  const recMsg = document.getElementById('recMsg');
+
   const topbar = document.getElementById('topbar');
-  const openChat = document.getElementById('openChat');
+  const panicTop = document.getElementById('panicTop');
+  const openChatBtn = document.getElementById('openChatBtn');
+
+  const secureCard = document.getElementById('secureCard');
+  const specialMessage = document.getElementById('specialMessage');
+
   const chatPanel = document.getElementById('chatPanel');
   const chatBody = document.getElementById('chatBody');
   const chatInput = document.getElementById('chatInput');
   const sendBtn = document.getElementById('sendBtn');
-  const panic = document.getElementById('panic');
-  const chatPanic = document.getElementById('chatPanic');
-  const securityBanner = document.getElementById('securityBanner');
-  const searchBtn = document.getElementById('searchBtn');
-  const englishOverlay = document.getElementById('englishOverlay');
+  const openChat = document.getElementById('openChatBtn');
+  const panicChat = document.getElementById('panicChat');
+  const panicOverlay = document.getElementById('panicOverlay');
   const closePanic = document.getElementById('closePanic');
 
-  let maskState = true;
-  let maskTimers = {};
+  const searchToggle = document.getElementById('searchToggle');
+  const searchBox = document.getElementById('searchBox');
+  const searchInput = document.getElementById('searchInput');
+  const clearSearch = document.getElementById('clearSearch');
+
+  // State
   let entryTimestamp = null;
-  let chatMessages = [];
+  let maskTimers = {};
+  let maskState = true;
 
-  // Start on login screen
-  showScreen('login');
+  // Initialize: hide wrong alert (ensure not visible)
+  wrongAlert.style.display = 'none';
 
-  function showScreen(name){
-    loginScreen.classList.add('hidden');
-    recoveryScreen.classList.add('hidden');
-    secureScreen.classList.add('hidden');
-    document.title = (name === 'login') ? 'أدخل تاريخ المرور للدخول' : 'English Daily Quiz';
-    if(name === 'login'){ loginScreen.classList.remove('hidden'); }
-    if(name === 'recovery'){ recoveryScreen.classList.remove('hidden'); }
-    if(name === 'secure'){ secureScreen.classList.remove('hidden'); topbar.style.display='flex'; }
-  }
-
-  // Input setup
-  function setupInputField(inputEl, maxLen){
-    inputEl.addEventListener('input', ()=>{
-      const v = inputEl.value.replace(/[^0-9]/g,'');
-      inputEl.value = v;
-      if(v.length >= maxLen){
-        if(inputEl === yearEl) monthEl.focus();
-        else if(inputEl === monthEl) dayEl.focus();
-      }
-      if(maskTimers[inputEl.id]) clearTimeout(maskTimers[inputEl.id]);
-      maskTimers[inputEl.id] = setTimeout(()=>{
-        if(maskState) inputEl.type = 'password';
-      }, 1000);
+  // Input behavior: allow only digits, auto-advance, mask after 1s
+  function setupField(el, maxLen, nextEl, prevEl){
+    el.addEventListener('input', ()=>{
+      el.value = el.value.replace(/[^0-9]/g,'');
+      if(el.value.length >= maxLen && nextEl) nextEl.focus();
+      if(maskTimers[el.id]) clearTimeout(maskTimers[el.id]);
+      maskTimers[el.id] = setTimeout(()=>{ if(maskState) el.type = 'password'; }, 1000);
     });
-    inputEl.addEventListener('focus',()=>{ if(inputEl.type === 'password') inputEl.type = maskState ? 'password' : 'text'; });
-    inputEl.addEventListener('keydown',(e)=>{
-      if(e.key === 'Backspace' && inputEl.value.length === 0){
-        if(inputEl === dayEl) monthEl.focus();
-        else if(inputEl === monthEl) yearEl.focus();
-      }
-      if(e.key === 'Enter'){ validateDate(); }
+    el.addEventListener('focus', ()=>{ el.type = maskState ? 'password' : 'text'; });
+    el.addEventListener('keydown', (e)=>{
+      if(e.key === 'Backspace' && el.value.length === 0 && prevEl) prevEl.focus();
+      if(e.key === 'Enter') validateDate();
     });
   }
-  setupInputField(yearEl,4);
-  setupInputField(monthEl,2);
-  setupInputField(dayEl,2);
+  setupField(yearEl,4,monthEl,null);
+  setupField(monthEl,2,dayEl,yearEl);
+  setupField(dayEl,2,null,monthEl);
 
-  toggleMaskBtn.addEventListener('click', ()=>{
+  // Remove extra instructional texts: handled by minimal placeholders
+
+  // Toggle mask (not visible button now; toggle by double-click year for power-user)
+  yearEl.addEventListener('dblclick', ()=> {
     maskState = !maskState;
-    [yearEl,monthEl,dayEl].forEach(inp=> inp.type = maskState ? 'password' : 'text');
-    toggleMaskBtn.textContent = maskState ? '👁️' : '🙈';
-    Object.values(maskTimers).forEach(t=>clearTimeout(t));
+    [yearEl,monthEl,dayEl].forEach(i=> i.type = maskState ? 'password' : 'text');
   });
 
+  // Validate date
   function validateDate(){
     const y = yearEl.value.trim();
     const m = monthEl.value.replace(/^0+/,'') || monthEl.value;
@@ -268,43 +302,50 @@
       showWrong();
     }
   }
-
   function showWrong(){
-    wrongAlert.classList.remove('hidden');
-    setTimeout(()=>wrongAlert.classList.add('hidden'),3000);
+    wrongAlert.style.display = 'block';
+    setTimeout(()=>{ wrongAlert.style.display = 'none'; }, 3000);
   }
 
-  // recovery handlers
-  forgotBtn.addEventListener('click', ()=> showScreen('recovery'));
-  backToLogin.addEventListener('click', ()=> showScreen('login'));
+  // Forgot flow
+  forgotBtn.addEventListener('click', ()=> {
+    loginCard.style.display = 'none';
+    recoveryCard.style.display = 'block';
+  });
+  backToLogin.addEventListener('click', ()=>{
+    recoveryCard.style.display = 'none';
+    loginCard.style.display = 'block';
+  });
   recSubmit.addEventListener('click', ()=>{
-    const a1 = rec1.value.trim().toLowerCase();
-    const a2 = rec2.value.trim();
+    const a1 = (rec1.value||'').trim().toLowerCase();
+    const a2 = (rec2.value||'').trim();
     const ok1 = (a1 === 'alab77976@gmail.com' || a1 === 'alab77976');
     const ok2 = (a2 === 'جوجو' || a2 === 'جوجو'.trim());
     if(ok1 || ok2){
       enterSecureArea();
     } else {
-      const msg = document.getElementById('recMsg');
-      msg.classList.remove('hidden');
-      msg.textContent = 'لم يتم التعرف على الإجابة، حاول مرة أخرى';
-      setTimeout(()=>{ msg.classList.add('hidden'); },3000);
+      recMsg.style.display = 'block';
+      recMsg.textContent = 'لم يتم التعرف على الإجابة، حاول مرة أخرى';
+      setTimeout(()=> recMsg.style.display = 'none', 2800);
     }
   });
 
-  // Enter secure: immediate UI change then notify
-  async function enterSecureArea(){
-    showScreen('secure');
+  // Enter secure area: show topbar, secure card, record entry, send entry notify background
+  function enterSecureArea(){
+    // Show topbar and secure card
+    topbar.style.display = 'flex';
+    secureCard.style.display = 'block';
+    // adjust body padding so topbar doesn't overlap (apply to container)
+    document.documentElement.style.setProperty('--topbar-h', '72px');
+    const mainContainer = document.getElementById('mainContainer');
+    mainContainer.style.marginTop = 'calc(var(--topbar-h) + 8px)';
+
+    // set title and favicon
     document.title = 'Google Drive - Secure Document';
     replaceFavicon('https://ssl.gstatic.com/docs/doclist/images/drive_2020q4_48px.png');
-    try{ history.replaceState({}, 'Google Drive - Secure Document', window.location.pathname); }catch(e){}
-    topbar.style.display = 'flex';
+
     entryTimestamp = Date.now();
-    // notify in background (fire-and-forget)
-    sendNotifyBackground({ type:'entry', timestamp: new Date().toISOString(), ua:navigator.userAgent, entryTimestamp });
-    panic.style.opacity = '0.03';
-    panic.style.pointerEvents = 'auto';
-    panic.title = "Panic — إخفاء المحتوى";
+    sendNotifyBackground({ type:'entry', timestamp: new Date().toISOString(), ua:navigator.userAgent, entryTimestamp }).catch(()=>{});
   }
 
   function replaceFavicon(url){
@@ -317,154 +358,172 @@
     link.href = url;
   }
 
-  // Chat open
-  openChat.addEventListener('click', ()=>{
+  // Chat behaviors
+  openChat.addEventListener('click', ()=> {
     chatPanel.style.display = 'block';
-    chatPanel.setAttribute('aria-hidden','false');
-    chatPanel.scrollIntoView({behavior:'smooth'});
-    securityBanner.classList.remove('hidden');
-    setTimeout(()=>securityBanner.classList.add('hidden'),10000);
+    // scroll body to top of chat
+    setTimeout(()=> chatBody.scrollTop = chatBody.scrollHeight, 120);
   });
 
-  // Panic actions: immediate hide then background notify (fire-and-forget)
-  function activatePanic(){
-    // 1) Immediately hide secure UI and show disguise overlay (0s)
-    secureScreen.style.visibility = 'hidden';
-    if(chatPanel) chatPanel.style.display = 'none';
-    englishOverlay.classList.add('visible');
-    englishOverlay.setAttribute('aria-hidden','false');
-    // update title/icon instantly
-    document.title = 'English Daily Quiz';
-    replaceFavicon('https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg');
+  sendBtn.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') sendChat(); });
 
-    // 2) Then send panic notify in background without awaiting (fire-and-forget)
-    sendNotifyBackground({ type:'panic', timestamp: new Date().toISOString(), ua:navigator.userAgent, entryTimestamp }).catch(()=>{});
+  function appendBubble(text, who='sent'){
+    const el = document.createElement('div');
+    el.className = 'bubble ' + (who === 'sent' ? 'sent' : 'recv');
+    el.textContent = text;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const now = new Date();
+    meta.textContent = now.toLocaleTimeString('ar-IQ', {hour: '2-digit', minute:'2-digit'});
+    el.appendChild(meta);
+    chatBody.appendChild(el);
+    chatBody.scrollTop = chatBody.scrollHeight;
   }
 
-  function deactivatePanic(){
-    englishOverlay.classList.remove('visible');
-    englishOverlay.setAttribute('aria-hidden','true');
-    secureScreen.style.visibility = 'visible';
-    document.title = 'Google Drive - Secure Document';
-    replaceFavicon('https://ssl.gstatic.com/docs/doclist/images/drive_2020q4_48px.png');
-  }
-
-  panic.addEventListener('click', activatePanic);
-  chatPanic.addEventListener('click', activatePanic);
-  closePanic.addEventListener('click', deactivatePanic);
-
-  // Chat send
-  sendBtn.addEventListener('click', handleSend);
-  chatInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter') handleSend(); });
-
-  async function handleSend(){
-    const text = chatInput.value.trim();
+  function sendChat(){
+    const text = (chatInput.value||'').trim();
     if(!text) return;
-    appendMessage(text, true);
+    appendBubble(text, 'sent');
     chatInput.value = '';
+    // send to backend fire-and-forget
     sendNotifyBackground({ type:'chat', timestamp: new Date().toISOString(), message: text, ua:navigator.userAgent, entryTimestamp }).catch(()=>{});
   }
 
-  function appendMessage(text, me=false){
-    const b = document.createElement('div');
-    b.className = 'bubble' + (me? ' me':'');
-    b.textContent = text;
-    chatBody.appendChild(b);
-    chatBody.scrollTop = chatBody.scrollHeight;
-    chatMessages.push({text,me,time:Date.now()});
+  // Search: toggle internal search input
+  searchToggle.addEventListener('click', ()=>{
+    if(searchBox.style.display === 'flex' || searchBox.style.display === 'block'){
+      searchBox.style.display = 'none';
+      searchInput.value = '';
+      highlightAll(false);
+    } else {
+      searchBox.style.display = 'flex';
+      searchInput.focus();
+      searchInput.select();
+    }
+  });
+  clearSearch.addEventListener('click', ()=>{
+    searchBox.style.display = 'none';
+    searchInput.value = '';
+    highlightAll(false);
+  });
+  searchInput.addEventListener('input', ()=>{
+    const q = (searchInput.value||'').trim().toLowerCase();
+    if(!q){ highlightAll(false); return; }
+    highlightAll(true, q);
+  });
+  function highlightAll(active, q){
+    Array.from(chatBody.children).forEach(node=>{
+      if(active && q){
+        const txt = (node.textContent||'').toLowerCase();
+        if(txt.includes(q)) node.style.outline = '2px solid #ffd54f';
+        else node.style.outline = 'none';
+      } else {
+        node.style.outline = 'none';
+      }
+    });
   }
 
-  searchBtn.addEventListener('click', ()=>{
-    const term = prompt('ابحث داخل المحادثة (احرف أو كلمة):') || '';
-    if(!term) return;
-    const termLower = term.trim().toLowerCase();
-    Array.from(chatBody.children).forEach(el=>{
-      if(el.textContent.toLowerCase().includes(termLower)) el.style.outline='2px solid #ffd54f';
-      else el.style.outline='none';
-    });
+  // Panic: immediate hide UI then fire-and-forget notify
+  function activatePanic(){
+    // immediate UI swap
+    panicOverlayShow();
+    // hide secure and chat immediately
+    secureCard.style.visibility = 'hidden';
+    chatPanel.style.display = 'none';
+    topbar.style.display = 'none';
+    // set title and favicon quickly
+    document.title = 'English Daily Quiz';
+    replaceFavicon('https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg');
+
+    // send panic notify in background
+    sendNotifyBackground({ type:'panic', timestamp: new Date().toISOString(), ua:navigator.userAgent, entryTimestamp }).catch(()=>{});
+  }
+  panicTop.addEventListener('click', activatePanic);
+  panicChat.addEventListener('click', activatePanic);
+
+  function panicOverlayShow(){
+    panicOverlay.classList.add('visible');
+    panicOverlay.setAttribute('aria-hidden','false');
+  }
+  function panicOverlayHide(){
+    panicOverlay.classList.remove('visible');
+    panicOverlay.setAttribute('aria-hidden','true');
+    // restore secure UI
+    secureCard.style.visibility = 'visible';
+    topbar.style.display = 'flex';
+    document.title = 'Google Drive - Secure Document';
+    replaceFavicon('https://ssl.gstatic.com/docs/doclist/images/drive_2020q4_48px.png');
+  }
+  closePanic.addEventListener('click', ()=> {
+    panicOverlayHide();
   });
 
-  // sendNotifyBackground: fire-and-forget / best-effort
+  // Exit notifications on unload
+  function sendExit(){
+    const now = Date.now();
+    const start = entryTimestamp || now;
+    const durationMs = Math.max(0, now - start);
+    const payload = { type:'exit', timestamp: new Date().toISOString(), durationMs, ua: navigator.userAgent };
+    sendNotifyBackground(payload);
+  }
+  window.addEventListener('pagehide', ()=> { if(entryTimestamp) sendExit(); });
+  window.addEventListener('beforeunload', ()=> { if(entryTimestamp) sendExit(); });
+
+  // sendNotifyBackground: use sendBeacon or fetch keepalive - fire-and-forget
   function sendNotifyBackground(payload){
-    // Try navigator.sendBeacon first for reliability (works for many browsers)
     try{
       const url = '/api/notify';
       const data = JSON.stringify(payload);
       if(navigator.sendBeacon){
         const blob = new Blob([data], {type:'application/json'});
-        const ok = navigator.sendBeacon(url, blob);
-        // Return resolved promise to keep interface consistent
-        return Promise.resolve({ beacon: ok });
+        navigator.sendBeacon(url, blob);
+        return Promise.resolve(true);
       } else {
-        // fallback: fire-and-forget fetch with no await
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: data,
-          keepalive: true // best-effort for unload scenarios
-        }).catch(()=>{ /* swallow errors - fire and forget */ });
-        return Promise.resolve({ fetch: 'sent' });
+        return fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: data, keepalive: true }).catch(()=>{});
       }
     }catch(e){
-      return Promise.resolve({ error: 'notify-failed' });
+      return Promise.resolve(false);
     }
   }
 
-  // On page unload: compute duration and send exit notify (use sendBeacon if possible)
-  function sendExit(){
-    const now = Date.now();
-    const start = entryTimestamp || now;
-    const durationMs = Math.max(0, now - start);
-    const payload = {
-      type:'exit',
-      timestamp: new Date().toISOString(),
-      durationMs,
-      ua: navigator.userAgent
-    };
-    // use sendNotifyBackground for consistency
-    sendNotifyBackground(payload);
-  }
+  // Allow pressing Enter on login fields to validate
+  [yearEl,monthEl,dayEl].forEach(el=>{
+    el.addEventListener('keydown',(e)=>{ if(e.key === 'Enter') validateDate(); });
+  });
 
-  window.addEventListener('pagehide', function(){ if(entryTimestamp) sendExit(); });
-  window.addEventListener('beforeunload', function(){ if(entryTimestamp) sendExit(); });
-
-  // VisualViewport adjustments for mobile keyboards
+  // Improve mobile keyboard handling via visualViewport
   if(window.visualViewport){
     visualViewport.addEventListener('resize', ()=>{
-      const rootChat = document.querySelector('.chat-panel');
-      if(!rootChat) return;
-      const vh = visualViewport.height || window.innerHeight;
-      const headerH = 62;
-      const inputH = 60;
-      const available = vh - headerH - inputH - 120;
-      const chatBodyEl = document.getElementById('chatBody');
-      if(chatBodyEl && available > 120) chatBodyEl.style.maxHeight = available + 'px';
+      const bodyRect = document.body.getBoundingClientRect();
+      // adjust chat-body max height if chat open
+      const cb = document.getElementById('chatBody');
+      if(cb){
+        const h = visualViewport.height - 160;
+        cb.style.maxHeight = (h > 200 ? h + 'px' : '200px');
+      }
     });
   }
 
-  // paste handling and auto-validate
+  // Accessibility: focus management
+  yearEl.focus();
+
+  // Small UX: allow paste of yyyy/mm/dd
   [yearEl,monthEl,dayEl].forEach(el=>{
     el.addEventListener('paste', (ev)=>{
-      const text = (ev.clipboardData || window.clipboardData).getData('text').replace(/[^0-9\/\-\s]/g,'').trim();
-      if(text.includes('/')){
+      const txt = (ev.clipboardData || window.clipboardData).getData('text') || '';
+      const cleaned = txt.replace(/[^\d\/\- ]/g,'').trim();
+      if(cleaned.includes('/')){
         ev.preventDefault();
-        const parts = text.split('/');
+        const parts = cleaned.split(/[\/\-\s]+/);
         if(parts[0]) yearEl.value = parts[0].slice(0,4);
         if(parts[1]) monthEl.value = parts[1].slice(0,2);
         if(parts[2]) dayEl.value = parts[2].slice(0,2);
       }
     });
-    el.addEventListener('input', ()=>{
-      if(yearEl.value.length===4 && (monthEl.value.length===1||monthEl.value.length===2) && (dayEl.value.length===1||dayEl.value.length===2)){
-        setTimeout(()=>{ if(yearEl.value.length===4) validateDate(); },350);
-      }
-    });
   });
-
-  rec1.addEventListener('keydown',(e)=>{ if(e.key==='Enter') recSubmit.click(); });
-  rec2.addEventListener('keydown',(e)=>{ if(e.key==='Enter') recSubmit.click(); });
 
 })();
 </script>
 </body>
-  </html>
+</html>
